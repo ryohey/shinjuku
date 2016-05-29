@@ -14,6 +14,24 @@ Pattern Based Dispatcher for Javascript
 ```js
 const shi = new Shinjuku
 
+// POST -> LISTEN -> SERVE -> OBSERVE
+
+// observe all entry title
+shi.observe("update", "categories/2/entries/3/title", (cat_id, entry_id, title) => {
+  navigationBar.title.text = title
+})
+
+// observe post events for all entries
+shi.listen("update", "categories/:cat_id/entries/:entry_id/title", (cat_id, entry_id, value) => {
+  // modify data store and call serve() to call observers
+  const entry = entryStore.find(cat_id, entry_id)
+  entry.title = value
+  shi.serve("update", `categories/${cat_id}/entries/${entry_id}/title`, value)
+})
+
+// post update event to change entry title
+shi.update("categories/2/entries/3/title", "Hello world")
+
 // provide data for request pattern
 shi.resource("categories/:cat_id/entries/:entry_id", (cat_id, entry_id) => {
   return {
@@ -24,21 +42,9 @@ shi.resource("categories/:cat_id/entries/:entry_id", (cat_id, entry_id) => {
   }
 })
 
-// observe all entry title
-shi.observe("update", "categories/:cat_id/entries/:entry_id/title", (cat_id, entry_id, title, oldTitle) => {
-  // call when the title changed
-})
-
-// observe entries in the first category
-shi.observe("update", "categories/0/entries/", (cat_id, entry_id, title, oldTitle) => {
-  // call when the entry changed (including the title)
-})
-
+// get the resource
 const title = shi.get("categories/3/entries/0/title")
 console.log(`Title is ${title}`)
-
-// update the entry title
-shi.update("categories/0/entries/0/title", "Hello world")
 ```
 
 ## API

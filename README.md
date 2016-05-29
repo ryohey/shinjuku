@@ -18,7 +18,7 @@ const shi = new Shinjuku
 
 // POST -> LISTEN -> SERVE -> OBSERVE
 
-// observe all entry title
+// observe current entry title
 shi.observe("update", "categories/2/entries/3/title", (cat_id, entry_id, title) => {
   navigationBar.title.text = title
 })

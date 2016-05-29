@@ -1,0 +1,14 @@
+{
+  "name": "shinjuku",
+  "version": "0.1.0",
+  "description": "Pattern Based Dispatcher for Javascript",
+  "main": "shinjuku.js",
+  "scripts": {
+    "test": "mocha test.js"
+  },
+  "author": "ryohey",
+  "license": "MIT",
+  "devDependencies": {
+    "mocha": "^2.5.3"
+  }
+}

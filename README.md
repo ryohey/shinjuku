@@ -11,6 +11,8 @@ Pattern Based Dispatcher for Javascript
 
 ## Example
 
+### One-way data flow
+
 ```js
 const shi = new Shinjuku
 
@@ -29,8 +31,16 @@ shi.listen("update", "categories/:cat_id/entries/:entry_id/title", (cat_id, entr
   shi.serve("update", `categories/${cat_id}/entries/${entry_id}/title`, value)
 })
 
-// post update event to change entry title
+// post update event will call listeners
 shi.update("categories/2/entries/3/title", "Hello world")
+```
+
+### get(), resource()
+
+```js
+const shi = new Shinjuku
+
+// GET -> RESOURCE
 
 // provide data for request pattern
 shi.resource("categories/:cat_id/entries/:entry_id", (cat_id, entry_id) => {

@@ -27,26 +27,51 @@
     }
   }
 
-  function callMatched(observers, type, path, value) {
-    observers.filter(o => o.type == type).forEach(o => {
-      const match = o.pattern.match(path)
+  function callMatched(listeners, type, path, value) {
+    listeners.filter(l => l.type == type).forEach(l => {
+      const match = l.pattern.match(path)
       if (match) {
         if (value) {
           match.push(value)
         }
-        o.callback.apply(null, match)
+        l.callback.apply(null, match)
       }
     })
+  }
+
+  class Observer {
+    constructor() {
+      this.listeners = []
+    }
+
+    on(type, pattern, callback) {
+      this.listeners.push({
+        type: type,
+        pattern: new PathPattern(pattern),
+        callback: callback
+      })
+    }
+
+    off(type, pattern, callback) {
+      this.listeners = this.listeners.filter(o => 
+        o.type == type &&
+        o.pattern == pattern &&
+        o.callback == callback
+      )
+    }
+
+    trigger(type, path, value) {
+      callMatched(this.listeners, type, path, value)
+    }
   }
 
   class Shinjuku {
     constructor() {
       this.resources = []
-      this.observers = []
-      this.listeners = []
+      this.upObserver = new Observer
+      this.downObserver = new Observer
+      this.on = this.onDown
     }
-
-    // resource -> get
 
     resource(pattern, callback) {
       this.resources.push({
@@ -64,46 +89,45 @@
       }
     }
 
-    // listen -> serve
-
-    listen(type, pattern, callback) {
-      this.listeners.push({
-        type: type,
-        pattern: new PathPattern(pattern),
-        callback: callback
-      })
+    onUp(type, pattern, callback) {
+      this.upObserver.on(type, pattern, callback)
     }
 
-    serve(type, path, value) {
-      callMatched(this.observers, type, path, value)
+    offUp(type, pattern, callback) {
+      this.upObserver.off(type, pattern, callback)
     }
 
-    // observe -> get
-
-    observe(type, pattern, callback) {
-      this.observers.push({
-        type: type,
-        pattern: new PathPattern(pattern),
-        callback: callback
-      })
+    up(type, path, value) {
+      this.upObserver.trigger(type, path, value)
     }
 
-    post(type, path, value) {
-      callMatched(this.listeners, type, path, value)
+    onDown(type, pattern, callback) {
+      this.downObserver.on(type, pattern, callback)
     }
+
+    offDown(type, pattern, callback) {
+      this.downObserver.off(type, pattern, callback)
+    }
+
+    down(type, path, value) {
+      this.downObserver.trigger(type, path, value)
+    }
+
+    // sugar
 
     create(path, value) {
-      this.post("create", path, value)
+      this.up("create", path, value)
     }
 
     update(path, value) {
-      this.post("update", path, value)
+      this.up("update", path, value)
     }
 
     remove(path, value) {
-      this.post("remove", path, value)
+      this.up("remove", path, value)
     }
   }
+
   const root = 
     typeof global == "object" ? global :
     typeof self == "object" ? self : this

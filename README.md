@@ -1,8 +1,12 @@
 # shinjuku
 
-Pattern Based Dispatcher for Javascript
+![logo](https://cloud.githubusercontent.com/assets/5355966/15680065/29a3a1ca-278f-11e6-8a85-7f0978d80d61.png)
 
-![data-flow](https://cloud.githubusercontent.com/assets/5355966/15634596/f50ed908-2602-11e6-8fc9-caed613bba40.png)
+Route Pattern Based Dispatcher for Javascript
+
+## Concept
+
+![detail](https://cloud.githubusercontent.com/assets/5355966/15680064/297a9c8a-278f-11e6-98a5-5b9ca8ad13b9.png)
 
 - communicate with modules like Express's router
 - one-way data flow

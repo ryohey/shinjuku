@@ -16,19 +16,19 @@ Pattern Based Dispatcher for Javascript
 ```js
 const shi = new Shinjuku
 
-// POST -> LISTEN -> SERVE -> OBSERVE
+// up -> onUp -> down -> onDown
 
 // observe current entry title
-shi.observe("update", "categories/2/entries/3/title", (cat_id, entry_id, title) => {
+shi.on("update", "categories/2/entries/3/title", (cat_id, entry_id, title) => {
   navigationBar.title.text = title
 })
 
 // observe post events for all entries
-shi.listen("update", "categories/:cat_id/entries/:entry_id/title", (cat_id, entry_id, value) => {
+shi.onUp("update", "categories/:cat_id/entries/:entry_id/title", (cat_id, entry_id, value) => {
   // modify data store and call serve() to call observers
   const entry = entryStore.find(cat_id, entry_id)
   entry.title = value
-  shi.serve("update", `categories/${cat_id}/entries/${entry_id}/title`, value)
+  shi.down("update", `categories/${cat_id}/entries/${entry_id}/title`, value)
 })
 
 // post update event will call listeners
@@ -59,27 +59,27 @@ console.log(`Title is ${title}`)
 
 ## API
 
-### `resource(pattern, callback)`
+### `up(type, path, value)`
 
-add `callback` that returns the resource for the path expressed in `pattern`
-
-### `observe(pattern, callback)`
-
-observe `serve` events for paths expressed in `pattern`
-
-### `listen(type, pattern, callback)`
-
-observe `post` events for paths expressed in `pattern` 
-
-### `post(type, path, value)`
-
-`post` will call callbacks registered by `listen`
+`up` will call callbacks registered by `onUp`
 
 `update`, `create`, `remove` is syntax sugar to omit `type`
 
-### `serve(type, path, value)`
+### `onUp(type, pattern, callback)`
 
-`serve` will call callbacks registered by `observe`
+observe `up` events for paths expressed in `pattern` 
+
+### `down(type, path, value)`
+
+`down` will call callbacks registered by `onDown`
+
+### `onDown(pattern, callback)`
+
+observe `down` events for paths expressed in `pattern`
+
+### `resource(pattern, callback)`
+
+add `callback` that returns the resource for the path expressed in `pattern`
 
 ### `get(path)`
 

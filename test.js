@@ -7,24 +7,24 @@ describe("shinjuku", () => {
   it("get resource for pattern", () => {
     const shi = new Shinjuku
     let called = false
-    shi.resource("/:first/b/:second", (first, second) => {
+    shi.resource("/:first/*/:second", (req) => {
       called = true
-      return [first, second]
+      return req
     })
     const res = shi.get("/a/b/c")
     assert(called)
-    assert.equal(res[0], "a")
-    assert.equal(res[1], "c")
+    assert.equal(res.params.first, "a")
+    assert.equal(res.params.second, "c")
   })
 
   it("observe up for pattern", () => {
     const shi = new Shinjuku
     let called = false
-    shi.onUp("update", "/a/:first/:second", (first, second, value) => {
+    shi.onUp("update", "/*/:first/:second", (req) => {
       called = true
-      assert.equal(first, "b")
-      assert.equal(second, "c")
-      assert.equal(value, "foobar")
+      assert.equal(req.params.first, "b")
+      assert.equal(req.params.second, "c")
+      assert.equal(req.value, "foobar")
     })
     const res = shi.up("update", "/a/b/c", "foobar")
     assert(called)
@@ -33,10 +33,10 @@ describe("shinjuku", () => {
   it("observe down for pattern", () => {
     const shi = new Shinjuku
     let called = false
-    shi.onDown("update", "/a/b/:id", (id, value) => {
+    shi.onDown("update", "/*/*/:id", (req) => {
       called = true
-      assert.equal(id, "c")
-      assert.equal(value, "foobar")
+      assert.equal(req.params.id, "c")
+      assert.equal(req.value, "foobar")
     })
     shi.down("update", "/a/b/c", "foobar")
     assert(called)

@@ -16,12 +16,14 @@
 
     // returns captured strings array(or empty array) if matched or returns null
     match(path) {
-      const capture = []
+      const capture = {}
       const target = splitComponents(path).reverse()
       for (const c of this.components) {
         const t = target.pop()
-        if (c.startsWith(":")) {
-          capture.push(t)
+        if (c == "*") {
+          continue
+        } else if (c.startsWith(":")) {
+          capture[c.substr(1)] = t
         } else if (c != t) {
           return null
         }
@@ -31,15 +33,21 @@
   }
 
   function callMatched(listeners, type, path, value) {
-    listeners.filter(l => l.type == type).forEach(l => {
-      const match = l.pattern.match(path)
-      if (match) {
-        if (value) {
-          match.push(value)
+    let res = undefined
+    listeners
+      .filter(l => l.type == "*" || l.type == type)
+      .forEach(l => {
+        const match = l.pattern.match(path)
+        if (match) {
+          res = l.callback({
+            type: type,
+            path: path,
+            value: value,
+            params: match
+          })
         }
-        l.callback.apply(null, match)
-      }
-    })
+      })
+    return res
   }
 
   class Observer {

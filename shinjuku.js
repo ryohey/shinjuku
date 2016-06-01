@@ -72,7 +72,7 @@
     }
 
     trigger(type, path, value) {
-      callMatched(this.listeners, type, path, value)
+      return callMatched(this.listeners, type, path, value)
     }
   }
 
@@ -81,23 +81,16 @@
       this.resources = []
       this.upObserver = new Observer
       this.downObserver = new Observer
+      this.resourceObserver = new Observer
       this.on = this.onDown
     }
 
     resource(pattern, callback) {
-      this.resources.push({
-        pattern: new PathPattern(pattern),
-        callback: callback
-      })
+      this.resourceObserver.on("res", pattern, callback)
     }
 
     get(path) {
-      for (const r of this.resources) {
-        const match = r.pattern.match(path)
-        if (match) {
-         return r.callback.apply(null, match)
-        }
-      }
+      return this.resourceObserver.trigger("res", path)
     }
 
     onUp(type, pattern, callback) {

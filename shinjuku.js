@@ -2,7 +2,10 @@
   "use strict"
 
   function splitComponents(path) {
-    return path.replace(/^\//, "").split("/")
+    return path
+      .replace(/^\//, "")
+      .replace(/\/$/, "")
+      .split("/")
   }
 
   class PathPattern {
@@ -13,12 +16,14 @@
 
     // returns captured strings array(or empty array) if matched or returns null
     match(path) {
-      const capture = []
+      const capture = {}
       const target = splitComponents(path).reverse()
       for (const c of this.components) {
         const t = target.pop()
-        if (c.startsWith(":")) {
-          capture.push(t)
+        if (c == "*") {
+          continue
+        } else if (c.startsWith(":")) {
+          capture[c.substr(1)] = t
         } else if (c != t) {
           return null
         }
@@ -28,15 +33,21 @@
   }
 
   function callMatched(listeners, type, path, value) {
-    listeners.filter(l => l.type == type).forEach(l => {
-      const match = l.pattern.match(path)
-      if (match) {
-        if (value) {
-          match.push(value)
+    let res = undefined
+    listeners
+      .filter(l => l.type == "*" || l.type == type)
+      .forEach(l => {
+        const match = l.pattern.match(path)
+        if (match) {
+          res = l.callback({
+            type: type,
+            path: path,
+            value: value,
+            params: match
+          })
         }
-        l.callback.apply(null, match)
-      }
-    })
+      })
+    return res
   }
 
   class Observer {
@@ -61,7 +72,7 @@
     }
 
     trigger(type, path, value) {
-      callMatched(this.listeners, type, path, value)
+      return callMatched(this.listeners, type, path, value)
     }
   }
 
@@ -70,23 +81,16 @@
       this.resources = []
       this.upObserver = new Observer
       this.downObserver = new Observer
+      this.resourceObserver = new Observer
       this.on = this.onDown
     }
 
     resource(pattern, callback) {
-      this.resources.push({
-        pattern: new PathPattern(pattern),
-        callback: callback
-      })
+      this.resourceObserver.on("res", pattern, callback)
     }
 
     get(path) {
-      for (const r of this.resources) {
-        const match = r.pattern.match(path)
-        if (match) {
-         return r.callback.apply(null, match)
-        }
-      }
+      return this.resourceObserver.trigger("res", path)
     }
 
     onUp(type, pattern, callback) {

@@ -2,7 +2,10 @@
   "use strict"
 
   function splitComponents(path) {
-    return path.replace(/^\//, "").split("/")
+    return path
+      .replace(/^\//, "")
+      .replace(/\/$/, "")
+      .split("/")
   }
 
   class PathPattern {

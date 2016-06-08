@@ -2,7 +2,7 @@
 
 ![logo](https://cloud.githubusercontent.com/assets/5355966/15680065/29a3a1ca-278f-11e6-8a85-7f0978d80d61.png)
 
-Route Pattern Based Dispatcher for Javascript
+Pattern Based Event Router for Javascript
 
 ## Concept
 

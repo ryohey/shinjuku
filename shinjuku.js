@@ -157,6 +157,31 @@
     }
   }
 
+  class Logger {
+    constructor(shi) {
+      function typeColor(type) {
+        switch (type) {
+          case "update": return "goldenrod"
+          case "remove": return "darkred"
+          case "create": return "darkgreen"
+          default: return "gray"
+        }
+      }
+      shi.onUp("*", "*", req => {
+        console.log(`%cUP%c: %c${req.type} %c${req.path}`, 
+          "color: darkred", "", `font-weight: bold; color: ${typeColor(req.type)};`, "color: gray;",
+          req.value)
+      })
+      shi.onDown("*", "*", req => {
+        console.log(`%cDOWN%c: %c${req.type} %c${req.path}`, 
+          "color: darkblue", "", `font-weight: bold; color: ${typeColor(req.type)};`, "color: gray;",
+          req.value)
+      })
+    }
+  }
+
+  Shinjuku.Logger = Logger
+
   const root = 
     typeof global == "object" ? global :
     typeof self == "object" ? self : this

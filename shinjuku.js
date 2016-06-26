@@ -1,10 +1,15 @@
 (function() {
   "use strict"
 
-  function splitComponents(path) {
+  function normalizePath(path) {
     return path
+      .replace(/\/\//, "/")
       .replace(/^\//, "")
       .replace(/\/$/, "")
+  }
+
+  function splitComponents(path) {
+    return normalizePath(path)
       .split("/")
   }
 
@@ -33,21 +38,22 @@
   }
 
   function callMatched(listeners, type, path, value) {
-    let res = undefined
-    listeners
+    return listeners
       .filter(l => l.type == "*" || l.type == type)
-      .forEach(l => {
+      .map(l => {
         const match = l.pattern.match(path)
         if (match) {
-          res = l.callback({
+          return l.callback({
             type: type,
             path: path,
             value: value,
             params: match
           })
+        } else {
+          return null
         }
       })
-    return res
+      .filter(r => r)[0]
   }
 
   class Observer {
@@ -77,44 +83,63 @@
   }
 
   class Shinjuku {
-    constructor() {
-      this.resources = []
-      this.upObserver = new Observer
-      this.downObserver = new Observer
-      this.resourceObserver = new Observer
+    constructor(parent = null, basePath = "") {
+      if (parent) {
+        this.upObserver = parent.upObserver
+        this.downObserver = parent.downObserver
+        this.resourceObserver = parent.resourceObserver
+      } else {
+        this.upObserver = new Observer
+        this.downObserver = new Observer
+        this.resourceObserver = new Observer
+      }
+
+      this.basePath = basePath
       this.on = this.onDown
     }
 
+    sub(basePath) {
+      return new Shinjuku(this, basePath)
+    }
+
+    makePath(path) {
+      return normalizePath(`${this.basePath}/${path}`)
+    }
+
     resource(pattern, callback) {
-      this.resourceObserver.on("res", pattern, callback)
+      this.resourceObserver.on("res", this.makePath(pattern), callback)
     }
 
     get(path) {
-      return this.resourceObserver.trigger("res", path)
+      return this.resourceObserver.trigger("res", this.makePath(path))
     }
 
     onUp(type, pattern, callback) {
-      this.upObserver.on(type, pattern, callback)
+      this.upObserver.on(type, this.makePath(pattern), callback)
     }
 
     offUp(type, pattern, callback) {
-      this.upObserver.off(type, pattern, callback)
+      this.upObserver.off(type, this.makePath(pattern), callback)
     }
 
     up(type, path, value) {
-      this.upObserver.trigger(type, path, value)
+      const aPath = this.makePath(path)
+      const res = this.upObserver.trigger(type, aPath, value)
+      if (res) {
+        this.down(type, path, res)
+      }
     }
 
     onDown(type, pattern, callback) {
-      this.downObserver.on(type, pattern, callback)
+      this.downObserver.on(type, this.makePath(pattern), callback)
     }
 
     offDown(type, pattern, callback) {
-      this.downObserver.off(type, pattern, callback)
+      this.downObserver.off(type, this.makePath(pattern), callback)
     }
 
     down(type, path, value) {
-      this.downObserver.trigger(type, path, value)
+      this.downObserver.trigger(type, this.makePath(path), value)
     }
 
     // sugar
